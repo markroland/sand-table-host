@@ -33,6 +33,19 @@ def continue_prompt():
         print(error)
         return continue_prompt()
 
+def config_grbl(grbl_serial):
+
+    # Set path to config file
+    config_filepath = PROJECT_PATH + '/Patterns/config.gcode'
+
+    # Read in file
+    with open(config_filepath) as fh:
+        config_lines = fh.readlines()
+
+    # Loop through command lines and send to GRBL
+    for line in config_lines:
+        grbl_serial.write(str.encode(line + '\n'))
+
 def distance(A, B):
     return math.sqrt(pow(B[0] - A[0], 2) + pow(B[1] - A[1], 2))
 
@@ -230,6 +243,9 @@ grbl_serial.write(str.encode('G10 L20 P0 X' + str(previous_x) + ' Y' + str(previ
 
 # Display current pattern printing
 print('Printing ' + args.track)
+
+# Send GRBL configuration (speed, acceleration, etc.)
+config_grbl(grbl_serial)
 
 # Print file contents
 print_pattern(grbl_serial, args.track, args.verbose)
