@@ -11,6 +11,7 @@ import json
 import datetime
 import re
 import csv
+import math
 # from pathlib import Path
 
 SERIAL_PORT = '/dev/ttyACM0'
@@ -31,6 +32,9 @@ def continue_prompt():
         print("Please enter valid inputs")
         print(error)
         return continue_prompt()
+
+def distance(A, B):
+    return math.sqrt(pow(B[0] - A[0], 2) + pow(B[1] - A[1], 2))
 
 def print_pattern(grbl_serial, pattern_file, verbose = False):
 
@@ -150,19 +154,60 @@ grbl_serial.write(str.encode("\r\n\r\n"))
 position_filepath = PROJECT_PATH + '/' + 'position.json'
 
 # Read previous position from file
+previous_x = 0.0
+previous_y = 0.0
 with open(position_filepath) as position_file:
     position_data = json.load(position_file)
-    previous_x = position_data['position']['x']
-    previous_y = position_data['position']['y']
+    previous_x = float(position_data['position']['x'])
+    previous_y = float(position_data['position']['y'])
     previous_time = position_data['time']
     position_file.close()
+
+# Parse GRBL Config
+rate = 2000 ## mm/min
+# with open(PROJECT_PATH + '/' + 'Patterns' + '/' + pattern_file, 'r') as grbl_config:
+#    for line in grbl_config:
+#        # TODO: Look for feed rate in config
+#        match = re.search('\$111=([0-9]+)', line)
+#        speed_x = match.group(1)
+
+# Parse pattern file
+steps = 0
+total_distance = 0
+estimated_time = 0
+with open(PROJECT_PATH + '/' + 'Patterns' + '/' + args.track, 'r') as track_gcode:
+
+    for line in track_gcode:
+
+        # Parse out X and Y positions from command
+        # Note: This assumes X comes before Y
+        match = re.search('G0\s?X(-?[0-9.]+)\s?Y(-?[0-9.]+)', line)
+        if match:
+            steps = steps + 1
+            x = float(match.group(1))
+            y = float(match.group(2))
+
+            total_distance = total_distance + distance((previous_x, previous_y), (x,y))
+
+            previous_x = x
+            previous_y = y
+
+    estimated_time = total_distance / (rate/60)
+
+    track_gcode.close()
 
 # Check last recorded position.
 # User should not proceed if the coordinates don't appear to accurately
 # represent the device
+print('Track: ' + args.track)
+print('Steps: ' + str(steps))
+print('Distance: ' + str(total_distance/1000) + ' meters')
+print('Estimated Time: ' + str(estimated_time) + ' seconds')
+print('--------------------------')
 print('Last Position Recorded: ' + previous_time)
-print('Current X Position: ' + previous_x)
-print('Current Y Position: ' + previous_y)
+print('Current X Position: ' + str(previous_x))
+print('Current Y Position: ' + str(previous_y))
+print('--------------------------')
 
 # Get confirmation to continue
 if continue_prompt() is not True:
@@ -170,10 +215,12 @@ if continue_prompt() is not True:
     grbl_serial.close()
     quit()
 
+# TODO: Estimate finish Time
 
 # Wait for grbl to initialize
-print('Waiting 2 seconds for GRBL to connect.')
+print('Connecting to GRBL...')
 time.sleep(2)
+print('Connected.')
 
 # Flush startup text in serial input
 grbl_serial.flushInput()
@@ -186,6 +233,8 @@ print('Printing ' + args.track)
 
 # Print file contents
 print_pattern(grbl_serial, args.track, args.verbose)
+
+# TODO: Leave open until estimated finish time?
 
 # Close GRBL serial
 grbl_serial.close()
