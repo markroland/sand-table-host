@@ -1,14 +1,8 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
+#
 # Run a single Sand Table Pattern Track
 #
-#
-#
-#
-
-# 9/22/2019 - Started
-# 10/13/2019 - Working
-# 11/3/2019 - Copied from player
+#  python3 sand-table-track.py square.gcode
 
 import argparse
 import serial
@@ -20,7 +14,7 @@ import csv
 # from pathlib import Path
 
 def continue_prompt():
-    check = str(raw_input("Continue ? (Y/N): ")).lower().strip()
+    check = str(input("Continue ? (Y/N): ")).lower().strip()
     try:
         if check[0] == 'y':
             return True
@@ -62,7 +56,7 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
     # grbl_serial.flushInput()
 
     # Set current position
-    # grbl_serial.write('G10 L20 P0 X' + str(previous_x) + ' Y' + str(previous_y) + ' Z0\n')
+    # grbl_serial.write(str.encode('G10 L20 P0 X' + str(previous_x) + ' Y' + str(previous_y) + ' Z0\n')
 
     # log_filepath = '/home/pi/Documents/Sand Table/log.txt'
 
@@ -79,18 +73,18 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
             print('Sending: ' + l)
 
         # Send g-code block to grbl
-        grbl_serial.write(l + '\n')
+        grbl_serial.write(str.encode(l + '\n'))
 
         # Write progress to file
         # with open(log_filepath, 'w') as log_file:
             # log_file.write(i + ") " + '\n')
-            # log_file.close();
+            # log_file.close()
 
         # Wait for grbl response with carriage return
         grbl_out = grbl_serial.readline()
 
         if verbose is True:
-            print(' : ' + grbl_out.strip())
+            print(' : ' + grbl_out.strip().decode('utf-8'))
 
         # Parse out X and Y positions from command
         # Note: This assumes X comes before Y
@@ -99,7 +93,7 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
             previous_x = match.group(1)
             previous_y = match.group(2)
 
-        match = re.search('WCO:(-?[0-9.]+),(-?[0-9.]+),-?[0-9.]+>$', grbl_out.strip())
+        match = re.search('WCO:(-?[0-9.]+),(-?[0-9.]+),-?[0-9.]+>$', grbl_out.strip().decode('utf-8'))
         if match:
             # previous_x = match.group(1)
             # previous_y = match.group(2)
@@ -109,11 +103,11 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
     # TODO: Get last position, parse, and save to file
     # https://pythex.org
     # Sample String: <Idle|MPos:0.000,0.000,0.000|FS:0,0|WCO:-236.000,-190.000,0.000>
-    # grbl_serial.write('$G?\n\n')
+    # grbl_serial.write(str.encode('$G?\n\n'))
     # grbl_out = grbl_serial.readline()
-    # print 'Last Position: ' + grbl_out.strip()
+    # print 'Last Position: ' + grbl_out.strip().decode('utf-8')
     ## https://docgrbl_serial.python.org/3/library/re.html
-    # m = re.search('WCO:(-?[0-9.]+),(-?[0-9.]+),-?[0-9.]+>$', grbl_out.strip())
+    # m = re.search('WCO:(-?[0-9.]+),(-?[0-9.]+),-?[0-9.]+>$', grbl_out.strip().decode('utf-8'))
     # print('Regex Group 0: ' + m.group(0))
     # print('Regex Group 1: ' + m.group(1))
     # Save to file
@@ -125,13 +119,13 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
             "y": previous_y,
         }
     }
-    print(data);
+    print(data)
     with open(position_filepath, 'w') as position_file:
         json.dump(data, position_file, indent=4, separators=(',', ': '))
-        position_file.close();
+        position_file.close()
 
     # Wait here until grbl is finished to close serial port and file.
-    # raw_input("  Press <Enter> to exit and disable grbl.")
+    # input("  Press <Enter> to exit and disable grbl.")
 
     # Close file and serial port
     gcode_file.close()
@@ -170,7 +164,8 @@ print('Current Y Position: ' + previous_y)
 if continue_prompt() is not True:
     print('Cancelled')
     grbl_serial.close()
-    quit();
+    quit()
+
 
 # Wait for grbl to initialize
 print('Waiting 2 seconds for GRBL to connect.')
@@ -180,7 +175,7 @@ time.sleep(2)
 grbl_serial.flushInput()
 
 # Set current position
-grbl_serial.write('G10 L20 P0 X' + str(previous_x) + ' Y' + str(previous_y) + ' Z0\n')
+grbl_serial.write(str.encode('G10 L20 P0 X' + str(previous_x) + ' Y' + str(previous_y) + ' Z0\n'))
 
 # Display current pattern printing
 print('Printing ' + args.track)
