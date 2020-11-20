@@ -13,6 +13,10 @@ import re
 import csv
 # from pathlib import Path
 
+SERIAL_PORT = '/dev/ttyACM0'
+SERIAL_BAUD_RATE = 115200
+PROJECT_PATH = '/home/pi/Documents/Sand Table'
+
 def continue_prompt():
     check = str(input("Continue ? (Y/N): ")).lower().strip()
     try:
@@ -35,22 +39,22 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
     previous_y = "0.0"
 
     # Set path to position file
-    position_filepath = '/home/pi/Documents/Sand Table/position.json'
+    position_filepath = PROJECT_PATH + '/' + 'position.json'
 
     # Read previous position from file
     with open(position_filepath) as position_file:
         position_data = json.load(position_file)
         previous_x = position_data['position']['x']
         previous_y = position_data['position']['y']
-        # position_file.close();
+        # position_file.close()
 
     # TODO: Stop if previous_x or previous_y is empty
     # print('Last X: ' + previous_x)
     # print('Last Y: ' + previous_y)
 
     # Open g-code file
-    folder = '/home/pi/Documents/Sand Table/Patterns';
-    gcode_file = open(folder + '/' + pattern_file,'r');
+    folder = PROJECT_PATH + '/' + 'Patterns'
+    gcode_file = open(folder + '/' + pattern_file,'r')
 
     # Flush startup text in serial input
     # grbl_serial.flushInput()
@@ -58,7 +62,7 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
     # Set current position
     # grbl_serial.write(str.encode('G10 L20 P0 X' + str(previous_x) + ' Y' + str(previous_y) + ' Z0\n')
 
-    # log_filepath = '/home/pi/Documents/Sand Table/log.txt'
+    # log_filepath = PROJECT_PATH + '/' + '/log.txt'
 
     # Stream g-code to grbl
     i = 0
@@ -137,13 +141,13 @@ parser.add_argument("-v", "--verbose", action='store_true', help="Display verbos
 args = parser.parse_args()
 
 # Open GRBL serial port
-grbl_serial = serial.Serial('/dev/ttyACM0', 115200)
+grbl_serial = serial.Serial(SERIAL_PORT, SERIAL_BAUD_RATE)
 
 # Wake up grbl
 grbl_serial.write(str.encode("\r\n\r\n"))
 
 # Set path to position file
-position_filepath = '/home/pi/Documents/Sand Table/position.json'
+position_filepath = PROJECT_PATH + '/' + 'position.json'
 
 # Read previous position from file
 with open(position_filepath) as position_file:
@@ -151,7 +155,7 @@ with open(position_filepath) as position_file:
     previous_x = position_data['position']['x']
     previous_y = position_data['position']['y']
     previous_time = position_data['time']
-    position_file.close();
+    position_file.close()
 
 # Check last recorded position.
 # User should not proceed if the coordinates don't appear to accurately
