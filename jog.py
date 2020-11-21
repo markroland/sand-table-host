@@ -1,25 +1,27 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import serial
 import time
 import re
 
+print('Welcome. Continue entering X,Y values until you are done. Press Ctrl + C to quit.')
+
 # Open grbl serial port
-grbl_serial = serial.Serial('/dev/ttyACM0',115200)
+grbl_serial = serial.Serial('/dev/ttyACM0', 115200)
 
 # Wake up grbl
-grbl_serial.write("\r\n\r\n")
+grbl_serial.write(str.encode("\r\n\r\n"))
 
 # Wait for grbl to initialize
-print 'Waiting 2 seconds for GRBL to connect.'
+print('Waiting 2 seconds for GRBL to connect.')
 time.sleep(2)
 
 # Flush startup text in serial input
 grbl_serial.flushInput()
 
 def prompt():
-    jog_x = input("Jog X: ");
-    jog_y = input("Jog Y: ");
+    jog_x = input("Jog X: ")
+    jog_y = input("Jog Y: ")
     return (jog_x, jog_y)
 
 # Prompt for X,Y values
@@ -33,7 +35,10 @@ while values[0] != 0 or values[1] != 0:
 
     # Send g-code block to grbl
     # print(grbl_command)
-    grbl_serial.write(grbl_command + '\n')
+    grbl_serial.write(str.encode(grbl_command + '\n'))
+
+    # Separator
+    print("-----")
 
     # Repeat Prompt
     values = prompt()
