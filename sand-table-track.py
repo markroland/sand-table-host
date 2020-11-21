@@ -178,18 +178,22 @@ with open(position_filepath) as position_file:
     previous_time = position_data['time']
     position_file.close()
 
-# Parse GRBL Config
-rate = 2000 ## mm/min
-# with open(PROJECT_PATH + '/' + 'Patterns' + '/' + pattern_file, 'r') as grbl_config:
-#    for line in grbl_config:
-#        # TODO: Look for feed rate in config
-#        match = re.search('\$111=([0-9]+)', line)
-#        speed_x = match.group(1)
+# Parse GRBL Config for plotter speed values
+rate = None
+with open(PROJECT_PATH + '/Patterns/config.gcode', 'r') as grbl_config:
+    for line in grbl_config:
+        match = re.search('\$110=([0-9\.]+)', line)
+        if match is not None:
+            speed_x = float(match.group(1))
+        match = re.search('\$111=([0-9\.]+)', line)
+        if match is not None:
+            speed_y = float(match.group(1))
+rate = min(speed_x, speed_y)
 
 # Parse pattern file
 steps = 0
 total_distance = 0
-estimated_time = 0
+estimated_time = None
 with open(PROJECT_PATH + '/' + 'Patterns' + '/' + args.track, 'r') as track_gcode:
 
     for line in track_gcode:
@@ -207,7 +211,8 @@ with open(PROJECT_PATH + '/' + 'Patterns' + '/' + args.track, 'r') as track_gcod
             previous_x = x
             previous_y = y
 
-    estimated_time = total_distance / (rate/60)
+    if rate is not None:
+        estimated_time = total_distance / (rate/60)
 
     track_gcode.close()
 
