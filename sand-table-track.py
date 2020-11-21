@@ -196,6 +196,8 @@ total_distance = 0
 estimated_time = None
 with open(PROJECT_PATH + '/' + 'Patterns' + '/' + args.track, 'r') as track_gcode:
 
+    x_last = previous_x
+    y_last = previous_y
     for line in track_gcode:
 
         # Parse out X and Y positions from command
@@ -206,10 +208,10 @@ with open(PROJECT_PATH + '/' + 'Patterns' + '/' + args.track, 'r') as track_gcod
             x = float(match.group(1))
             y = float(match.group(2))
 
-            total_distance = total_distance + distance((previous_x, previous_y), (x,y))
+            total_distance = total_distance + distance((x_last, y_last), (x,y))
 
-            previous_x = x
-            previous_y = y
+            x_last = x
+            y_last = y
 
     if rate is not None:
         estimated_time = total_distance / (rate/60)
