@@ -17,6 +17,8 @@ import math
 SERIAL_PORT = '/dev/ttyACM0'
 SERIAL_BAUD_RATE = 115200
 PROJECT_PATH = '/home/pi/Documents/Sand Table'
+MAX_X = 472.0
+MAX_Y = 380.0
 
 def continue_prompt():
     check = str(input("Continue ? (Y/N): ")).lower().strip()
@@ -229,6 +231,7 @@ print('--------------------------')
 print('Last Position Recorded: ' + previous_time)
 print('Current X Position: ' + str(previous_x))
 print('Current Y Position: ' + str(previous_y))
+print('Center Offset (mm): ' + '[' + str(round(previous_x - (MAX_X/2))) +', ' + str(round(previous_y - (MAX_Y/2))) + ']')
 print('--------------------------')
 
 # Get confirmation to continue
