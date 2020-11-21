@@ -114,12 +114,15 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
             previous_x = match.group(1)
             previous_y = match.group(2)
 
-        match = re.search('WCO:(-?[0-9.]+),(-?[0-9.]+),-?[0-9.]+>$', grbl_out.strip().decode('utf-8'))
-        if match:
+        # Debug Work Coordinates
+        # match = re.search('WCO:(-?[0-9.]+),(-?[0-9.]+),-?[0-9.]+>$', grbl_out.strip().decode('utf-8'))
+        # if match:
             # previous_x = match.group(1)
             # previous_y = match.group(2)
-            print('Regex Group 1: ' + match.group(1))
-            print('Regex Group 2: ' + match.group(2))
+            # print('Regex Group 1: ' + match.group(1))
+            # print('Regex Group 2: ' + match.group(2))
+
+    # Save plotter position coordinates to file
 
     # TODO: Get last position, parse, and save to file
     # https://pythex.org
@@ -131,8 +134,7 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
     # m = re.search('WCO:(-?[0-9.]+),(-?[0-9.]+),-?[0-9.]+>$', grbl_out.strip().decode('utf-8'))
     # print('Regex Group 0: ' + m.group(0))
     # print('Regex Group 1: ' + m.group(1))
-    # Save to file
-    #
+
     data = {
         "time": str(datetime.datetime.now()),
         "position": {
@@ -140,7 +142,7 @@ def print_pattern(grbl_serial, pattern_file, verbose = False):
             "y": previous_y,
         }
     }
-    print(data)
+
     with open(position_filepath, 'w') as position_file:
         json.dump(data, position_file, indent=4, separators=(',', ': '))
         position_file.close()
@@ -213,9 +215,9 @@ with open(PROJECT_PATH + '/' + 'Patterns' + '/' + args.track, 'r') as track_gcod
 # User should not proceed if the coordinates don't appear to accurately
 # represent the device
 print('Track: ' + args.track)
-print('Steps: ' + str(steps))
-print('Distance: ' + str(total_distance/1000) + ' meters')
-print('Estimated Time: ' + str(estimated_time) + ' seconds')
+print('Steps: ' + "{:,d}".format(steps))
+print('Distance: ' + str(round(total_distance/1000, 2)) + ' meters')
+print('Estimated Time: ' + str(round(estimated_time, 2)) + ' seconds')
 print('--------------------------')
 print('Last Position Recorded: ' + previous_time)
 print('Current X Position: ' + str(previous_x))
@@ -242,7 +244,7 @@ grbl_serial.flushInput()
 grbl_serial.write(str.encode('G10 L20 P0 X' + str(previous_x) + ' Y' + str(previous_y) + ' Z0\n'))
 
 # Display current pattern printing
-print('Printing ' + args.track)
+print('Printing ' + args.track + '...')
 
 # Send GRBL configuration (speed, acceleration, etc.)
 config_grbl(grbl_serial)
@@ -255,4 +257,6 @@ print_pattern(grbl_serial, args.track, args.verbose)
 # Close GRBL serial
 grbl_serial.close()
 
-print('Complete')
+# Print closing statement
+print('--------------------------')
+print('Completed at ' + datetime.datetime.now())
